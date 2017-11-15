@@ -9,13 +9,14 @@ class CurrencyConverter extends React.Component {
       baseVal: '',
       baseSymbol: '',
       baseType: '',
-      currencies: '',
+      currencies: null,
       outVal: '',
       outSymbol: '',
       outType: ''
     };
 
     this.getCurrencies = this.getCurrencies.bind(this);
+    this.handleChange = this.handleChange.bind(this);
   }
 
   // let currencies = null;
@@ -25,37 +26,52 @@ class CurrencyConverter extends React.Component {
       .then(res => res.json())
       .then(output => {
         // localStorage.setItem('currencies', JSON.stringify(output));
-        this.setState({ currencies: output });
+        this.setState({
+          baseSymbol: output['USD']['symbol_native'],
+          baseType: output['USD']['code'],
+          currencies: output
+        });
+        // console.log(JSON.stringify(output).charCodeAt(1));
       })
       // .then( () => { currencies = JSON.parse(localStorage['currencies'] )})
       .catch(err => console.error(err));
-
-    // if (currencies !== null)
-    // setTimeout(() => {
-    //       currencies = JSON.parse(localStorage['currencies']);
-    //       // console.log(currencies);
-    //     }, 3000);
   }
   componentWillMount() {
     this.getCurrencies(
       'https://gist.githubusercontent.com/mddenton/062fa4caf150bdf845994fc7a3533f74/raw/b0d1722b04b0a737aade2ce6e055263625a0b435/Common-Currency.json'
     );
   }
+  // componentDidMount() {
+  //   this.handleChange();
+  // }
+
+  handleChange(e) {
+    this.setState({ baseSymbol: this.state.currencies[e.target.value]['symbol_native'] });
+  }
 
   render() {
     let currencyTypes = [];
-    for (const types in this.state.currencies) {
-      currencyTypes.push(this.state.currencies[types]['name']);
+    let currencies = this.state.currencies;
+    for (const types in currencies) {
+      currencyTypes.push([currencies[types]['code'], currencies[types]['name']]);
     }
     //console.log(this.props.currencies);
     return (
       <div>
-        Base Currency:&nbsp;
-        <select>
-          {currencyTypes.map(type => {
-            return <option>{type}</option>;
-          })}
-        </select>
+        <form>
+          Base Currency:&nbsp;
+          <select onChange={this.handleChange}>
+            {currencyTypes.map((type, index) => {
+              return (
+                <option key={index} value={type[0]}>
+                  {type[1]}
+                </option>
+              );
+            })}
+          </select>
+          <span> {this.state.baseSymbol} </span>
+          <input defaultValue={this.state.baseVal} />
+        </form>
       </div>
     );
   }
